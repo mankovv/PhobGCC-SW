@@ -1356,7 +1356,7 @@ void processButtons(Pins &pin, Buttons &btn, Buttons &hardware, ControlConfig &c
 					tempBtn.La = (uint8_t) 0;
 				} else {
 					tempBtn.La = readLa(pin, controls.lTrigInitial, 1) * shutoffLa;
-					if (tempBtn.La > 10) {
+					if (tempBtn.La > 49) {
 						if (tempBtn.La < ((uint8_t) controls.lTriggerOffset)) {
 							tempBtn.La = (uint8_t) 49;
 						} else {
@@ -1435,7 +1435,7 @@ void processButtons(Pins &pin, Buttons &btn, Buttons &hardware, ControlConfig &c
 					tempBtn.Ra = (uint8_t) 0;
 				} else {
 					tempBtn.Ra = readRa(pin, controls.rTrigInitial, 1) * shutoffRa;
-					if (tempBtn.Ra > 10) {
+					if (tempBtn.Ra > 49) {
 						if (tempBtn.Ra < ((uint8_t) controls.rTriggerOffset)) {
 							tempBtn.Ra = (uint8_t) 49;
 						} else {
