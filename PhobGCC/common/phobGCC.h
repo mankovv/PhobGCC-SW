@@ -11,18 +11,18 @@
 //#include "../teensy/Phob1_1Teensy3_2DiodeShort.h"// For PhobGCC board 1.1 with Teensy 3.2 and the diode shorted
 //#include "../teensy/Phob1_1Teensy4_0.h"          // For PhobGCC board 1.1 with Teensy 4.0
 //#include "../teensy/Phob1_1Teensy4_0DiodeShort.h"// For PhobGCC board 1.1 with Teensy 4.0 and the diode shorted
-//#include "../teensy/Phob1_2Teensy4_0.h"          // For PhobGCC board 1.2.x with Teensy 4.0
+#include "../teensy/Phob1_2Teensy4_0.h"          // For PhobGCC board 1.2.x with Teensy 4.0
 
 #include "structsAndEnums.h"
 #include "filter.h"
 #include "stick.h"
 #include "../extras/extras.h"
 
-//#define BUILD_RELEASE
-#define BUILD_DEV
+#define BUILD_RELEASE
+//#define BUILD_DEV
 
 //This is just an integer.
-#define SW_VERSION 28
+#define SW_VERSION 27
 
 ControlConfig _controls{
 	.jumpConfig = DEFAULTJUMP,
@@ -31,7 +31,7 @@ ControlConfig _controls{
 	.lConfig = 0,
 	.rConfig = 0,
 	.triggerConfigMin = 0,
-	.triggerConfigMax = 6,
+	.triggerConfigMax = 7,
 	.triggerDefault = 0,
 	.lTriggerOffset = 49,
 	.rTriggerOffset = 49,
@@ -1350,6 +1350,21 @@ void processButtons(Pins &pin, Buttons &btn, Buttons &hardware, ControlConfig &c
 					tempBtn.La = readLa(pin, controls.lTrigInitial, triggerScaleL) * shutoffLa;
 				}
 				break;
+			case 7: //Analog Step
+				if(lockoutL) {
+					tempBtn.L  = (uint8_t) 0;
+					tempBtn.La = (uint8_t) 0;
+				} else {
+					tempBtn.La = readLa(pin, controls.lTrigInitial, 1) * shutoffLa;
+					if (tempBtn.La > 10) {
+						if (tempBtn.La < ((uint8_t) controls.lTriggerOffset)) {
+							tempBtn.La = (uint8_t) 49;
+						} else {
+							tempBtn.La = (uint8_t) 255;
+						}
+					}
+				}
+				break;
 			default:
 				if(lockoutL){
 					tempBtn.L  = (uint8_t) 0;
@@ -1414,6 +1429,21 @@ void processButtons(Pins &pin, Buttons &btn, Buttons &hardware, ControlConfig &c
 					tempBtn.Ra = readRa(pin, controls.rTrigInitial, triggerScaleR) * shutoffRa;
 				}
 				break;
+			case 7: //Analog Step
+				if(lockoutR) {
+					tempBtn.R  = (uint8_t) 0;
+					tempBtn.Ra = (uint8_t) 0;
+				} else {
+					tempBtn.Ra = readRa(pin, controls.rTrigInitial, 1) * shutoffRa;
+					if (tempBtn.Ra > 10) {
+						if (tempBtn.Ra < ((uint8_t) controls.rTriggerOffset)) {
+							tempBtn.Ra = (uint8_t) 49;
+						} else {
+							tempBtn.Ra = (uint8_t) 255;
+						}
+					}
+				}
+				break;
 			default:
 				if(lockoutR){
 					tempBtn.R  = (uint8_t) 0;
@@ -1475,7 +1505,7 @@ void processButtons(Pins &pin, Buttons &btn, Buttons &hardware, ControlConfig &c
 	* Increase/Decrease X-Axis Waveshaping:  LXZ+Du/Dd
 	* Increase/Decrease X-Axis Offset:  RXZ+Du/Dd
 	* Increase/Decrease Y-Axis Offset:  RYZ+Du/Dd
-	* Show C-Stick Settings:  R+Start
+	* Show C-Stick Settings:  RStart+Dd
 	*
 	* Swap X with Z:  XZ+Start
 	* Swap Y with Z:  YZ+Start
@@ -1510,7 +1540,7 @@ void processButtons(Pins &pin, Buttons &btn, Buttons &hardware, ControlConfig &c
 			freezeSticks(2000, btn, hardware);
 		}
 
-		if(hardware.A && hardware.X && hardware.Y && hardware.S && !hardware.L && !hardware.R) { //Safe Mode Toggle
+		if(hardware.A && hardware.X && hardware.Y && hardware.S) { //Safe Mode Toggle
 			controls.safeMode = true;
 			freezeSticks(4000, btn, hardware);
 		} else if (hardware.A && hardware.Z && hardware.Du && !hardware.X && !hardware.Y) { //display version number (ignore commands for c stick snapback)
@@ -1661,7 +1691,7 @@ void processButtons(Pins &pin, Buttons &btn, Buttons &hardware, ControlConfig &c
 		}
 	} else if (currentCalStep == -1) { //Safe Mode Enabled, Lock Settings, wait for safe mode command
 		static float safeModeAccumulator = 0.0;
-		if(hardware.A && hardware.X && hardware.Y && hardware.S && !hardware.L && !hardware.R) { //Safe Mode Toggle
+		if(hardware.A && hardware.X && hardware.Y && hardware.S) { //Safe Mode Toggle
 			safeModeAccumulator = 0.99*safeModeAccumulator + 0.01;
 		} else {
 			safeModeAccumulator = 0.99*safeModeAccumulator;
